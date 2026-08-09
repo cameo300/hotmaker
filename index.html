@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAKE IT REAL — [이름] 포트폴리오</title>
+<meta name="description" content="생성형 AI로 디자인한 캐릭터를 3D 프린팅과 레이저 커팅으로 실물 굿즈화한 작업 기록">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     TOKENS
+     ============================================================ */
+  :root{
+    --bg:          #F8F5EF;   /* 배경 — 밝은 베이지 */
+    --bg-soft:     #F1ECE1;   /* 배경 위 보조 패널(모바일 메뉴 등) */
+    --muted:       #948A7C;   /* 보조 텍스트 — 따뜻한 그레이 */
+    --muted-dim:   rgba(148,138,124,0.16);
+    --paper:       #FFFFFF;   /* 카드 표면 — 화이트 */
+    --paper-2:     #EAE4D8;   /* 카드 내부 구분선 */
+    --ink:         #2B2723;   /* 본문 텍스트 — 다크 브라운 그레이 */
+    --ink-soft:    #857B6E;   /* 카드 내 보조 텍스트 */
+    --accent:      #A85D68;   /* 포인트 컬러 — 더스티 로즈 (CTA/강조에만 사용) */
+    --accent-soft: #F2E1E0;   /* 포인트 컬러의 옅은 배경용 톤 */
+    --line:        #E6E0D3;   /* 그리드 라인, 구분선 */
+    --radius:      2px;
+    --maxw:        1180px;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body:    'Inter', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{ display:block; max-width:100%; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  section{ position:relative; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 32px; }
+
+  /* 도면 그리드 배경 */
+  .grid-bg{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:40px 40px;
+    pointer-events:none;
+  }
+
+  /* 등록 마크(+) — 시그니처 요소: 레이저 커팅 파일의 정렬 기준점을 카드 모서리에 재현 */
+  .reg-mark{ position:absolute; width:14px; height:14px; pointer-events:none; opacity:.55; }
+  .reg-mark::before, .reg-mark::after{ content:''; position:absolute; background:currentColor; }
+  .reg-mark::before{ top:50%; left:0; width:100%; height:1px; transform:translateY(-50%); }
+  .reg-mark::after{ left:50%; top:0; height:100%; width:1px; transform:translateX(-50%); }
+  .reg-mark.tl{ top:10px; left:10px; }
+  .reg-mark.tr{ top:10px; right:10px; }
+  .reg-mark.bl{ bottom:10px; left:10px; }
+  .reg-mark.br{ bottom:10px; right:10px; }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{
+    content:''; width:20px; height:1px; background:var(--muted);
+  }
+
+  h1,h2,h3{ font-family:var(--font-display); font-weight:600; letter-spacing:-.01em; }
+
+  /* ============================================================
+     NAV
+     ============================================================ */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(248,245,239,.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{
+    font-family:var(--font-mono); font-size:.85rem; font-weight:600;
+    display:flex; align-items:center; gap:8px; color:var(--ink);
+  }
+  .nav-mark .dot{ width:8px; height:8px; background:var(--accent); border-radius:1px; }
+  .nav-links{ display:flex; gap:36px; }
+  .nav-links a{
+    font-family:var(--font-mono); font-size:.75rem; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--muted); position:relative; padding:4px 0;
+    transition:color .2s;
+  }
+  .nav-links a:hover{ color:var(--accent); }
+  .nav-toggle{ display:none; flex-direction:column; gap:5px; background:none; border:0; cursor:pointer; padding:8px; }
+  .nav-toggle span{ width:22px; height:2px; background:var(--ink); }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero{
+    padding:150px 0 100px;
+    overflow:hidden;
+  }
+  .hero .wrap{ position:relative; z-index:2; display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center; }
+  .hero-copy .eyebrow{ margin-bottom:22px; }
+  .hero h1{
+    font-size:clamp(2.4rem, 5vw, 4rem);
+    line-height:1.08;
+    margin-bottom:22px;
+  }
+  .hero h1 em{ font-style:normal; color:var(--accent); }
+  .hero p.lead{
+    color:var(--muted); font-size:1.02rem; max-width:480px; margin-bottom:34px;
+  }
+  .hero-meta{
+    display:flex; gap:28px; flex-wrap:wrap; margin-bottom:36px;
+    font-family:var(--font-mono); font-size:.75rem; color:var(--muted);
+  }
+  .hero-meta strong{ display:block; color:var(--ink); font-size:.95rem; font-family:var(--font-body); font-weight:600; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--font-mono); font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:14px 24px; border:1px solid var(--accent); color:var(--accent);
+    border-radius:var(--radius); transition:.2s;
+  }
+  .btn:hover{ background:var(--accent); color:#FFFFFF; border-color:var(--accent); }
+  .btn.solid{ background:var(--accent); color:#FFFFFF; }
+  .btn.solid:hover{ background:transparent; color:var(--accent); }
+
+  /* 히어로 시각물: 프린트 베드 카드 */
+  .bed-card{
+    position:relative; background:var(--paper); border-radius:var(--radius);
+    padding:14px; box-shadow:0 30px 60px -20px rgba(0,0,0,.5);
+  }
+  .bed-photo{
+    position:relative; aspect-ratio:4/5; overflow:hidden; background:
+      repeating-linear-gradient(45deg, #EFE9DD 0 2px, transparent 2px 14px), #F5F1E8;
+  }
+  .bed-photo img{ width:100%; height:100%; object-fit:cover; position:relative; z-index:1; }
+  .bed-photo.is-missing img{ opacity:0; }
+  .placeholder-tag{
+    display:none; position:absolute; inset:0; z-index:2;
+    flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    color:var(--ink-soft); text-align:center; padding:20px;
+  }
+  .bed-photo.is-missing .placeholder-tag,
+  .card-photo.is-missing .placeholder-tag,
+  .badge-photo.is-missing .placeholder-tag{ display:flex; }
+  .placeholder-tag .ico{ width:34px; height:34px; border:1.5px solid var(--ink-soft); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:.9rem; }
+  .placeholder-tag small{ font-family:var(--font-mono); font-size:.68rem; letter-spacing:.04em; }
+
+  .job-tag{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:12px; padding:10px 4px 2px;
+    font-family:var(--font-mono); font-size:.7rem; color:var(--ink); letter-spacing:.02em;
+  }
+  .job-tag .job-id{ color:var(--accent); font-weight:600; }
+
+  /* 프린트 진행 바 — 시그니처 디테일 */
+  .print-bar{ margin-top:10px; padding:0 4px; }
+  .print-bar .track{ height:4px; background:var(--paper-2); border-radius:2px; overflow:hidden; }
+  .print-bar .fill{ height:100%; width:0%; background:var(--accent); transition:width 2.4s cubic-bezier(.4,0,.2,1); }
+  .print-bar .label{ display:flex; justify-content:space-between; margin-top:6px; font-family:var(--font-mono); font-size:.65rem; color:var(--ink-soft); }
+
+  /* ============================================================
+     PROCESS
+     ============================================================ */
+  .process{ padding:90px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .process-head{ margin-bottom:56px; max-width:620px; }
+  .process-head h2{ font-size:clamp(1.6rem,3vw,2.2rem); margin-top:14px; }
+  .process-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative; }
+  .process-row::before{
+    content:''; position:absolute; top:26px; left:0; right:0; height:1px; background:var(--line);
+  }
+  .step{ position:relative; padding-right:30px; }
+  .step .num{
+    font-family:var(--font-mono); font-size:.8rem; color:var(--accent);
+    background:var(--bg); display:inline-block; padding-right:14px; position:relative; z-index:1;
+  }
+  .step h3{ font-size:1.15rem; margin:18px 0 10px; }
+  .step p{ color:var(--muted); font-size:.9rem; max-width:280px; }
+
+  /* ============================================================
+     WORK / GALLERY
+     ============================================================ */
+  .work{ padding:110px 0 100px; }
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+    margin-bottom:52px; flex-wrap:wrap;
+  }
+  .section-head h2{ font-size:clamp(1.8rem,3.4vw,2.6rem); margin-top:14px; }
+  .section-head .count{ font-family:var(--font-mono); font-size:.78rem; color:var(--muted); text-align:right; }
+  .section-head .count strong{ display:block; font-size:1.6rem; color:var(--ink); font-family:var(--font-display); }
+
+  .gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
+  .card{
+    background:var(--paper); color:var(--ink); border-radius:var(--radius);
+    overflow:hidden; position:relative;
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  /* 스크롤 등장 연출은 JS가 정상 동작할 때만 적용되는 progressive enhancement.
+     JS가 막혀 있거나 실패해도 카드는 기본적으로 항상 보임(opacity:1). */
+  .card.reveal-init{ opacity:0; transform:translateY(24px); }
+  .card.in-view{ opacity:1; transform:translateY(0); }
+  .card-photo{
+    position:relative; aspect-ratio:1/1; background:
+      repeating-linear-gradient(45deg, #EFE9DD 0 2px, transparent 2px 14px), #F5F1E8;
+  }
+  .card-photo img{ width:100%; height:100%; object-fit:cover; }
+  .card-photo.is-missing img{ opacity:0; }
+  .card-photo .placeholder-tag .ico{ border-color:var(--ink-soft); }
+  .card-body{ padding:18px 18px 20px; }
+  .card-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .card-id{ font-family:var(--font-mono); font-size:.68rem; color:var(--accent); font-weight:600; }
+  .card-tags{ font-family:var(--font-mono); font-size:.62rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+  .card h3{ font-size:1.08rem; margin-bottom:8px; }
+  .card p.desc{ font-size:.86rem; color:var(--ink-soft); margin-bottom:14px; }
+  .spec{
+    display:grid; grid-template-columns:1fr 1fr; gap:6px 14px;
+    font-family:var(--font-mono); font-size:.68rem; color:var(--ink-soft);
+    border-top:1px dashed var(--paper-2); padding-top:12px;
+  }
+  .spec b{ display:block; color:var(--ink); font-size:.7rem; font-weight:600; }
+
+  /* ============================================================
+     ABOUT
+     ============================================================ */
+  .about{ padding:110px 0; border-top:1px solid var(--line); }
+  .about .wrap{ display:grid; grid-template-columns:.85fr 1.15fr; gap:64px; align-items:start; }
+  .badge-card{
+    background:var(--paper); color:var(--ink); border-radius:var(--radius); padding:18px;
+    position:relative;
+  }
+  .badge-photo{
+    aspect-ratio:3/4; background:
+      repeating-linear-gradient(45deg, #EFE9DD 0 2px, transparent 2px 14px), #F5F1E8;
+    position:relative; overflow:hidden;
+  }
+  .badge-photo img{ width:100%; height:100%; object-fit:cover; }
+  .badge-photo.is-missing img{ opacity:0; }
+  .badge-info{ padding-top:14px; font-family:var(--font-mono); font-size:.72rem; }
+  .badge-info .name{ font-family:var(--font-display); font-size:1.2rem; color:var(--ink); margin-bottom:4px; }
+  .badge-info .role{ color:var(--ink-soft); }
+
+  .about-copy .eyebrow{ margin-bottom:18px; }
+  .about-copy h2{ font-size:clamp(1.7rem,3vw,2.3rem); margin-bottom:22px; }
+  .about-copy p{ color:var(--muted); margin-bottom:18px; max-width:560px; }
+  .about-copy p.ink{ color:var(--ink); }
+
+  .tool-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px 24px; margin:30px 0 34px; }
+  .tool-grid li{
+    font-family:var(--font-mono); font-size:.82rem; color:var(--ink);
+    padding:10px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;
+  }
+  .tool-grid li span{ color:var(--muted); }
+
+  .contact-row{ display:flex; gap:14px; flex-wrap:wrap; }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  footer{ border-top:1px solid var(--line); padding:36px 0; }
+  footer .wrap{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  footer p{ font-family:var(--font-mono); font-size:.7rem; color:var(--muted); }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width:900px){
+    .hero .wrap{ grid-template-columns:1fr; }
+    .about .wrap{ grid-template-columns:1fr; }
+    .gallery{ grid-template-columns:repeat(2,1fr); }
+    .process-row{ grid-template-columns:1fr; gap:34px; }
+    .process-row::before{ display:none; }
+  }
+  @media (max-width:640px){
+    .nav-links{
+      position:absolute; top:64px; left:0; right:0; background:var(--bg);
+      flex-direction:column; padding:18px 32px; gap:18px; border-bottom:1px solid var(--line);
+      display:none;
+    }
+    .nav-links.open{ display:flex; }
+    .nav-toggle{ display:flex; }
+    .gallery{ grid-template-columns:1fr; }
+    .tool-grid{ grid-template-columns:1fr; }
+    .hero{ padding:120px 0 70px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    html{ scroll-behavior:auto; }
+  }
+
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAV
+     ============================================================ -->
+<nav class="nav">
+  <div class="wrap">
+    <a href="#home" class="nav-mark"><span class="dot"></span>MAKE / IT / REAL</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero" id="home">
+  <div class="grid-bg"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">AI Character → Fabrication Log</span>
+      <h1>아이디어를,<br><em>손에 잡히는 것</em>으로.</h1>
+      <p class="lead">생성형 AI로 그려낸 나만의 캐릭터를 3D 프린팅과 레이저 커팅으로 실제 굿즈로 옮기는 과정을 기록한 제작 포트폴리오입니다.</p>
+      <div class="hero-meta">
+        <div><strong>[이름]</strong>MAKER</div>
+        <div><strong>[학과 / 학번]</strong>DEPT</div>
+        <div><strong>2025–2026</strong>SEMESTER</div>
+      </div>
+      <a href="#work" class="btn solid">작업 기록 보기 ↓</a>
+    </div>
+
+    <div class="hero-visual">
+      <div class="bed-card">
+        <div class="bed-photo" id="heroPhoto">
+          <img src="images/hero-character.jpg" alt="대표 캐릭터 및 굿즈 사진" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag">
+            <div class="ico">+</div>
+            <small>images/hero-character.jpg<br>대표 캐릭터 사진을 넣어주세요 (권장 1000×1250px)</small>
+          </div>
+        </div>
+        <div class="job-tag">
+          <span class="job-id">JOB #000</span>
+          <span>MAIN CHARACTER — [캐릭터 이름]</span>
+        </div>
+        <div class="print-bar">
+          <div class="track"><div class="fill" id="printFill"></div></div>
+          <div class="label"><span>PRINTING…</span><span id="printPct">0%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PROCESS
+     ============================================================ -->
+<section class="process" id="process">
+  <div class="wrap">
+    <div class="process-head">
+      <span class="eyebrow">Workflow</span>
+      <h2>화면 속 캐릭터가 굿즈가 되기까지</h2>
+    </div>
+    <div class="process-row">
+      <div class="step">
+        <span class="num">01</span>
+        <h3>AI 캐릭터 디자인</h3>
+        <p>생성형 AI로 캐릭터의 콘셉트와 스타일을 탐색하고 최종 디자인을 확정합니다.</p>
+      </div>
+      <div class="step">
+        <span class="num">02</span>
+        <h3>모델링 · 전개도 제작</h3>
+        <p>3D 모델링 또는 벡터 전개도 작업으로 출력·커팅 가능한 데이터로 변환합니다.</p>
+      </div>
+      <div class="step">
+        <span class="num">03</span>
+        <h3>출력 · 커팅 · 마감</h3>
+        <p>3D 프린터와 레이저 커터로 제작한 뒤 후가공을 거쳐 완성합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WORK / GALLERY
+     ============================================================ -->
+<section class="work" id="work">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Fabrication Log</span>
+        <h2>작업 목록</h2>
+      </div>
+      <div class="count">완료된 제작물<strong>06</strong></div>
+    </div>
+
+    <div class="gallery">
+
+      <!-- CARD 01 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-01.jpg" alt="캐릭터 피규어" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-01.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #01</span><span class="card-tags">FIGURE</span></div>
+          <h3>[작품명] 피규어</h3>
+          <p class="desc">캐릭터의 포즈와 표정을 살려 제작한 스탠드형 피규어입니다.</p>
+          <div class="spec">
+            <div><b>공정</b>FDM 3D프린팅</div>
+            <div><b>재료</b>PLA</div>
+            <div><b>사이즈</b>90×60×120mm</div>
+            <div><b>제작시간</b>약 6시간</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 02 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-02.jpg" alt="아크릴 키링" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-02.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #02</span><span class="card-tags">KEYRING</span></div>
+          <h3>[작품명] 아크릴 키링</h3>
+          <p class="desc">캐릭터 일러스트를 레이저 커팅으로 재단한 데일리 소품입니다.</p>
+          <div class="spec">
+            <div><b>공정</b>레이저 커팅</div>
+            <div><b>재료</b>아크릴 3T</div>
+            <div><b>사이즈</b>50×50mm</div>
+            <div><b>제작시간</b>약 40분</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 03 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-03.jpg" alt="캐릭터 퍼즐" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-03.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #03</span><span class="card-tags">PUZZLE</span></div>
+          <h3>[작품명] 우드 퍼즐</h3>
+          <p class="desc">캐릭터 실루엣을 조각내어 맞추는 원목 퍼즐로 제작했습니다.</p>
+          <div class="spec">
+            <div><b>공정</b>레이저 커팅</div>
+            <div><b>재료</b>MDF 3T</div>
+            <div><b>사이즈</b>150×150mm</div>
+            <div><b>제작시간</b>약 50분</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 04 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-04.jpg" alt="미니 피규어 세트" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-04.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #04</span><span class="card-tags">FIGURE</span></div>
+          <h3>[작품명] 미니 피규어 세트</h3>
+          <p class="desc">여러 포즈의 캐릭터를 소형화하여 세트로 구성한 굿즈입니다.</p>
+          <div class="spec">
+            <div><b>공정</b>레진 3D프린팅</div>
+            <div><b>재료</b>UV 레진</div>
+            <div><b>사이즈</b>40×40×60mm</div>
+            <div><b>제작시간</b>약 3시간</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 05 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-05.jpg" alt="스탠딩 조명" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-05.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #05</span><span class="card-tags">GOODS</span></div>
+          <h3>[작품명] 무드등</h3>
+          <p class="desc">캐릭터 실루엣이 은은하게 비치는 나무 소재 무드등입니다.</p>
+          <div class="spec">
+            <div><b>공정</b>레이저 커팅</div>
+            <div><b>재료</b>합판 4T</div>
+            <div><b>사이즈</b>100×100×150mm</div>
+            <div><b>제작시간</b>약 1시간</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 06 -->
+      <article class="card">
+        <div class="card-photo">
+          <img src="images/work-06.jpg" alt="배지 세트" onerror="this.parentElement.classList.add('is-missing')">
+          <div class="placeholder-tag"><div class="ico">+</div><small>images/work-06.jpg</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-id">JOB #06</span><span class="card-tags">BADGE</span></div>
+          <h3>[작품명] 캐릭터 배지</h3>
+          <p class="desc">캐릭터의 표정 변화를 담은 미니 배지 시리즈입니다.</p>
+          <div class="spec">
+            <div><b>공정</b>레이저 커팅</div>
+            <div><b>재료</b>아크릴 2T</div>
+            <div><b>사이즈</b>38×38mm</div>
+            <div><b>제작시간</b>약 30분</div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="badge-card">
+      <div class="reg-mark tl" style="color:var(--ink)"></div>
+      <div class="reg-mark br" style="color:var(--ink)"></div>
+      <div class="badge-photo">
+        <img src="images/profile.jpg" alt="프로필 사진" onerror="this.parentElement.classList.add('is-missing')">
+        <div class="placeholder-tag"><div class="ico">+</div><small>images/profile.jpg<br>프로필 사진 (권장 900×1200px)</small></div>
+      </div>
+      <div class="badge-info">
+        <div class="name">[이름]</div>
+        <div class="role">MAKER / DESIGNER — [학과]</div>
+      </div>
+    </div>
+
+    <div class="about-copy">
+      <span class="eyebrow">About</span>
+      <h2>화면 속에서 시작해서<br>손끝에서 완성합니다.</h2>
+      <p class="ink">[자기소개를 입력하세요. 어떤 계기로 캐릭터를 디자인하게 되었는지, 메이킹 수업에서 무엇을 배웠는지, 앞으로 만들고 싶은 것은 무엇인지 2~3문장으로 적어보세요.]</p>
+      <p>이 포트폴리오는 [학교명] 메이킹 수업 최종 프로젝트로, 생성형 AI 캐릭터 디자인부터 3D 프린팅·레이저 커팅을 활용한 실물 제작까지의 전 과정을 담았습니다.</p>
+
+      <ul class="tool-grid">
+        <li>생성형 AI 디자인<span>Midjourney / ChatGPT</span></li>
+        <li>3D 모델링<span>Fusion 360 / Blender</span></li>
+        <li>3D 프린팅<span>FDM / 레진</span></li>
+        <li>레이저 커팅<span>아크릴 / 우드</span></li>
+      </ul>
+
+      <div class="contact-row" id="contact">
+        <a href="mailto:example@email.com" class="btn">Email</a>
+        <a href="#" class="btn">Instagram</a>
+        <a href="#" class="btn">Behance</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <p>MAKE / IT / REAL — [학교명] 메이킹 수업 최종 프로젝트</p>
+    <p>© 2026 [이름]. All work made by hand & machine.</p>
+  </div>
+</footer>
+
+<script>
+  // 모바일 메뉴 토글
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // 스크롤 등장 애니메이션 (IntersectionObserver를 지원할 때만 적용)
+  if ('IntersectionObserver' in window) {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(el => el.classList.add('reveal-init'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+    }, { threshold: 0.15 });
+    cards.forEach(el => io.observe(el));
+  }
+
+  // 히어로 프린트 진행 바 연출
+  window.addEventListener('load', () => {
+    const fill = document.getElementById('printFill');
+    const pct = document.getElementById('printPct');
+    requestAnimationFrame(() => {
+      fill.style.width = '78%';
+      let n = 0;
+      const t = setInterval(() => {
+        n += 2;
+        if (n >= 78) { n = 78; clearInterval(t); }
+        pct.textContent = n + '%';
+      }, 2400/39);
+    });
+  });
+</script>
+
+</body>
+</html>
