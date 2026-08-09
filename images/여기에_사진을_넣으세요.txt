@@ -1,0 +1,12 @@
+이 폴더에 아래 파일명 그대로 사진을 넣어주세요.
+
+hero-character.jpg   대표 캐릭터 사진 (4:5 비율 권장)
+work-01.jpg           갤러리 카드 1
+work-02.jpg           갤러리 카드 2
+work-03.jpg           갤러리 카드 3
+work-04.jpg           갤러리 카드 4
+work-05.jpg           갤러리 카드 5
+work-06.jpg           갤러리 카드 6
+profile.jpg            프로필 사진 (3:4 비율 권장)
+
+자세한 설명은 상위 폴더의 "가이드.txt"를 참고하세요.
