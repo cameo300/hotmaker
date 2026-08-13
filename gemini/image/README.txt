@@ -1,0 +1,1 @@
+이 폴더(image) 안에 profile.jpg, item1.jpg, item2.jpg, item3.jpg 파일을 넣으세요.
